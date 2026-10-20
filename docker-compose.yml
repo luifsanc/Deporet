@@ -1,0 +1,62 @@
+name: deporet
+services:
+  bootstrap:
+    image: alpine:3.22
+    user: "0:0"
+    entrypoint: ["/bin/sh", "/bootstrap.sh"]
+    volumes:
+      - ./scripts/docker-bootstrap.sh:/bootstrap.sh:ro
+      - runtime-secrets:/secrets
+      - protection-keys:/keys
+    restart: "no"
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: deporet
+      POSTGRES_USER: deporet
+      POSTGRES_PASSWORD_FILE: /run/deporet/db-password
+    volumes:
+      - pgdata:/var/lib/postgresql
+      - runtime-secrets:/run/deporet:ro
+    depends_on:
+      bootstrap:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U deporet -d deporet"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Database: Host=db;Database=deporet;Username=deporet
+      Security__SecretDirectory: /run/deporet
+      Security__KeyPath: /var/deporet/keys
+      Payments__Mode: ${PAYMENTS_MODE:-Manual}
+      Database__MigrateOnStartup: "true"
+      Sandbox__Seed: "${SANDBOX_SEED:-false}"
+      Bootstrap__Email: ${BOOTSTRAP_ADMIN_EMAIL:-admin@deporet.test}
+    volumes:
+      - runtime-secrets:/run/deporet:ro
+      - protection-keys:/var/deporet/keys
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+  web:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports:
+      - "127.0.0.1:${DEPORET_PORT:-8088}:8080"
+    depends_on:
+      - api
+    restart: unless-stopped
+volumes:
+  pgdata:
+  runtime-secrets:
+  protection-keys:

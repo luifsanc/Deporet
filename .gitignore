@@ -1,0 +1,12 @@
+**/bin/
+**/obj/
+**/node_modules/
+**/dist/
+**/.angular/
+.local/
+.env
+*.log
+test-results/
+playwright-report/
+
+**/.keys/

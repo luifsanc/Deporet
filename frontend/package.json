@@ -1,0 +1,35 @@
+{
+  "name": "deporet-web",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve --host 127.0.0.1 --port 4200 --proxy-config proxy.conf.json",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development"
+  },
+  "private": true,
+  "packageManager": "npm@11.19.1",
+  "dependencies": {
+    "@angular/common": "^21.2.0",
+    "@angular/compiler": "^21.2.0",
+    "@angular/core": "^21.2.0",
+    "@angular/forms": "^21.2.0",
+    "@angular/platform-browser": "^21.2.0",
+    "@angular/router": "^21.2.0",
+    "@fontsource-variable/inter": "5.3.0",
+    "@microsoft/signalr": "10.0.11",
+    "pdfjs-dist": "6.4.299",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular/build": "^21.2.27",
+    "@angular/cli": "^21.2.27",
+    "@angular/compiler-cli": "^21.2.0",
+    "@tailwindcss/postcss": "4.3.3",
+    "postcss": "8.5.29",
+    "prettier": "^3.8.1",
+    "tailwindcss": "4.3.3",
+    "typescript": "~5.9.2"
+  }
+}

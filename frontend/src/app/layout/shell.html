@@ -1,0 +1,192 @@
+@let user = session.user()!;
+<div class="min-h-dvh" [style.--sidebar-w]="collapsed() ? '5rem' : '17rem'">
+
+  <!-- Desktop sidebar (≥1024px) -->
+  <aside class="fixed inset-y-0 left-0 z-30 hidden w-(--sidebar-w) flex-col overflow-hidden bg-navy-900 transition-[width] duration-300 ease-[cubic-bezier(.22,1,.36,1)] lg:flex"
+         aria-label="Barra lateral">
+    <div class="pointer-events-none absolute -right-24 -top-24 size-64 rounded-full bg-brand-600/20 blur-3xl" aria-hidden="true"></div>
+
+    <div class="relative flex h-20 shrink-0 items-center" [class]="collapsed() ? 'justify-center px-0' : 'px-6'">
+      <a routerLink="/" aria-label="DepoRet, ir al inicio" class="rounded-xl">
+        <dr-logo [variant]="collapsed() ? 'mark' : 'full'" tone="light" [size]="36" />
+      </a>
+    </div>
+
+    @if (!collapsed()) {
+      <div class="relative mx-4 mb-4 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-3" style="animation: var(--animate-fade-in)">
+        <span class="inline-flex size-9 items-center justify-center rounded-xl bg-white/10 text-white"><dr-icon name="wallet" class="size-[1.125rem]" /></span>
+        <div class="min-w-0">
+          <p class="truncate text-[0.8125rem] font-semibold text-white">{{ session.isClient() ? 'Mi espacio personal' : 'Centro de operaciones' }}</p>
+          <p class="truncate text-xs text-navy-300">{{ user.roleLabel }} · Ecuador</p>
+        </div>
+      </div>
+    }
+
+    <nav class="scrollbar-dark relative flex-1 overflow-y-auto overflow-x-hidden pb-4" [class]="collapsed() ? 'px-3' : 'px-4'" aria-label="Navegación principal">
+      @for (group of groups(); track group.name; let first = $first) {
+        @if (collapsed()) {
+          @if (!first) { <div class="mx-auto my-3 h-px w-8 bg-white/10" aria-hidden="true"></div> }
+        } @else {
+          <p class="px-3 pb-2 pt-4 text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-navy-400" [class.pt-1]="first">{{ group.name }}</p>
+        }
+        <ul class="space-y-1">
+          @for (item of group.items; track item.path) {
+            @let count = badge(item);
+            <li>
+              <a class="nav-item" [class]="collapsed() ? 'justify-center px-0' : ''" [routerLink]="'/' + item.path" routerLinkActive="is-active"
+                 [drTooltip]="item.label + (count ? ' · ' + count + ' pendientes' : '')" [tooltipEnabled]="collapsed()" [attr.aria-label]="collapsed() ? item.label : null">
+                <dr-icon [name]="item.icon" />
+                @if (!collapsed()) {
+                  <span class="truncate">{{ item.label }}</span>
+                  @if (count) { <span class="nav-badge num">{{ count }}</span> }
+                } @else if (count) {
+                  <span class="absolute right-2.5 top-2 size-2 rounded-full bg-brand-500 ring-2 ring-navy-900" aria-hidden="true"></span>
+                }
+              </a>
+            </li>
+          }
+        </ul>
+      }
+    </nav>
+
+    <div class="relative shrink-0 border-t border-white/10 p-3">
+      @if (!collapsed()) {
+        <div class="mb-3 rounded-2xl bg-gradient-to-br from-white/[0.07] to-white/[0.02] p-4" style="animation: var(--animate-fade-in)">
+          <div class="flex items-center gap-2 text-[0.8125rem] font-semibold text-white"><dr-icon name="shield" class="size-4 text-brand-400" /> Todo empieza con confianza</div>
+          <p class="mt-1.5 text-xs leading-relaxed text-navy-300">Revisa monto, comisión e IVA antes de confirmar cada operación.</p>
+        </div>
+      }
+      <button type="button" class="nav-item" [class]="collapsed() ? 'justify-center px-0' : ''" (click)="toggleCollapsed()"
+              [drTooltip]="'Expandir menú'" [tooltipEnabled]="collapsed()" [attr.aria-label]="collapsed() ? 'Expandir menú' : 'Contraer menú'" [attr.aria-expanded]="!collapsed()">
+        <dr-icon [name]="collapsed() ? 'panel-right' : 'panel-left'" />
+        @if (!collapsed()) { <span>Contraer menú</span> }
+      </button>
+    </div>
+  </aside>
+
+  <!-- Content column -->
+  <div class="transition-[padding] duration-300 ease-[cubic-bezier(.22,1,.36,1)] lg:pl-(--sidebar-w)">
+
+    <!-- Top bar: compact navbar on phones/tablets, breadcrumb bar on desktop -->
+    <header class="sticky top-0 z-20 border-b border-ink-100 bg-white/85 backdrop-blur-xl">
+      <div class="flex h-16 items-center gap-2 px-4 sm:px-6 lg:h-[4.5rem] lg:px-10">
+        <a routerLink="/" class="lg:hidden" aria-label="DepoRet, ir al inicio"><dr-logo [size]="30" /></a>
+
+        <div class="hidden min-w-0 items-center gap-2 text-sm lg:flex">
+          <span class="text-ink-400">{{ session.isClient() ? 'Mi DepoRet' : 'Operaciones' }}</span>
+          <dr-icon name="chevron-right" class="size-4 text-ink-300" />
+          <span class="truncate font-semibold text-ink-900">{{ current()?.label }}</span>
+        </div>
+
+        <div class="ml-auto flex items-center gap-1 sm:gap-2" data-menu>
+          <span class="mr-2 hidden items-center gap-2 rounded-full border border-ink-200 bg-white px-3 py-1.5 text-xs font-medium text-ink-600 md:inline-flex">
+            <span class="relative inline-flex size-2">
+              @if (session.live()) { <span class="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-60"></span> }
+              <span class="relative inline-flex size-2 rounded-full" [class]="session.live() ? 'bg-emerald-500' : 'bg-ink-300'"></span>
+            </span>
+            {{ session.mode() === 'Sandbox' ? 'Sandbox' : 'Operación manual' }} · {{ session.live() ? 'En vivo' : 'Sin conexión en vivo' }}
+          </span>
+
+          <div class="relative">
+            <button type="button" class="btn btn-icon relative" (click)="notificationsOpen.set(!notificationsOpen()); profileOpen.set(false)"
+                    [attr.aria-expanded]="notificationsOpen()" aria-label="Ver notificaciones">
+              <dr-icon name="bell" />
+              @if (alerts()) { <span class="absolute right-2 top-2 size-2 rounded-full bg-brand-600 ring-2 ring-white"></span> }
+            </button>
+            @if (notificationsOpen()) {
+              <div class="card fixed inset-x-3 top-[4.25rem] z-40 p-2 sm:absolute sm:inset-x-auto sm:right-0 sm:top-12 sm:w-80" style="animation: var(--animate-rise-in)" role="menu">
+                <p class="px-3 pb-1 pt-2 text-sm font-semibold text-ink-900">Tu actividad</p>
+                @if (session.has('transactions.read')) {
+                  <a [routerLink]="session.has('transactions.settle') ? '/revision' : '/movimientos'" class="flex items-center gap-3 rounded-xl p-3 hover:bg-ink-50" role="menuitem">
+                    <span class="icon-tile is-brand size-9"><dr-icon name="clock" class="size-[1.125rem]" /></span>
+                    <span class="min-w-0 flex-1 text-sm"><span class="num font-semibold text-ink-900">{{ session.dashboard()?.pending ?? 0 }}</span> operaciones en proceso</span>
+                    <dr-icon name="chevron-right" class="size-4 text-ink-400" />
+                  </a>
+                }
+                @if (session.has('topups.read')) {
+                  <a routerLink="/recargas" class="flex items-center gap-3 rounded-xl p-3 hover:bg-ink-50" role="menuitem">
+                    <span class="icon-tile is-navy size-9"><dr-icon name="wallet" class="size-[1.125rem]" /></span>
+                    <span class="min-w-0 flex-1 text-sm"><span class="num font-semibold text-ink-900">{{ session.dashboard()?.pendingTopups ?? 0 }}</span> recargas pendientes</span>
+                    <dr-icon name="chevron-right" class="size-4 text-ink-400" />
+                  </a>
+                }
+                <p class="mx-3 mb-2 mt-1 border-t border-ink-100 pt-3 text-xs leading-relaxed text-ink-500">
+                  {{ session.live() ? 'Recibes actualizaciones en tiempo real.' : 'Sin conexión en vivo: actualiza la página para ver cambios.' }}
+                </p>
+              </div>
+            }
+          </div>
+
+          <div class="relative">
+            <button type="button" class="flex items-center gap-3 rounded-xl p-1 transition hover:bg-ink-50 sm:pr-2.5" (click)="profileOpen.set(!profileOpen()); notificationsOpen.set(false)"
+                    [attr.aria-expanded]="profileOpen()" aria-label="Abrir menú de usuario">
+              <span class="inline-flex size-9 items-center justify-center overflow-hidden rounded-full bg-brand-50 text-xs font-bold text-brand-700 ring-2 ring-white">
+                @if (session.avatarUrl()) { <img [src]="session.avatarUrl()" alt="" class="size-full object-cover" /> } @else { {{ initials() }} }
+              </span>
+              <span class="hidden text-left leading-tight xl:block">
+                <span class="block max-w-40 truncate text-[0.8125rem] font-semibold text-ink-900">{{ user.name }}</span>
+                <span class="block text-xs text-ink-500">{{ user.roleLabel }}</span>
+              </span>
+              <dr-icon name="down" class="hidden size-4 text-ink-400 xl:block" />
+            </button>
+            @if (profileOpen()) {
+              <div class="card fixed inset-x-3 top-[4.25rem] z-40 p-2 sm:absolute sm:inset-x-auto sm:right-0 sm:top-12 sm:w-64" style="animation: var(--animate-rise-in)" role="menu">
+                <div class="px-3 py-2.5">
+                  <p class="truncate text-sm font-semibold text-ink-900">{{ user.name }}</p>
+                  <p class="truncate text-xs text-ink-500">{{ user.email }}</p>
+                </div>
+                <div class="divider my-1"></div>
+                @if (session.has('profile.edit')) {
+                  <a routerLink="/perfil" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-ink-700 hover:bg-ink-50" role="menuitem"><dr-icon name="user" class="size-[1.125rem] text-ink-400" /> Mi perfil</a>
+                }
+                <a routerLink="/ayuda" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-ink-700 hover:bg-ink-50" role="menuitem"><dr-icon name="help" class="size-[1.125rem] text-ink-400" /> Centro de ayuda</a>
+                <button type="button" class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-rose-700 hover:bg-rose-50" role="menuitem" (click)="logout()"><dr-icon name="logout" class="size-[1.125rem]" /> Cerrar sesión</button>
+              </div>
+            }
+          </div>
+
+          <button type="button" class="btn btn-icon lg:hidden" (click)="mobileOpen.set(!mobileOpen()); notificationsOpen.set(false); profileOpen.set(false)"
+                  [attr.aria-expanded]="mobileOpen()" aria-controls="mobile-nav" [attr.aria-label]="mobileOpen() ? 'Cerrar menú' : 'Abrir menú'">
+            <dr-icon [name]="mobileOpen() ? 'close' : 'menu'" />
+          </button>
+        </div>
+      </div>
+
+      <!-- Mobile navigation panel -->
+      @if (mobileOpen()) {
+        <nav id="mobile-nav" class="scrollbar-thin max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-ink-100 bg-white px-4 pb-5 pt-3 sm:px-6 lg:hidden"
+             style="animation: var(--animate-rise-in)" aria-label="Navegación principal">
+          <div class="mb-3 flex items-center justify-between rounded-2xl bg-ink-50 px-3 py-2.5 text-xs text-ink-600">
+            <span class="font-medium">{{ user.roleLabel }} · {{ session.mode() === 'Sandbox' ? 'Sandbox' : 'Manual' }}</span>
+            <span class="inline-flex items-center gap-1.5"><span class="size-2 rounded-full" [class]="session.live() ? 'bg-emerald-500' : 'bg-ink-300'"></span>{{ session.live() ? 'En vivo' : 'Sin conexión' }}</span>
+          </div>
+          @for (group of groups(); track group.name) {
+            <p class="px-1 pb-2 pt-3 text-[0.6875rem] font-semibold uppercase tracking-[0.14em] text-ink-400">{{ group.name }}</p>
+            <ul class="grid grid-cols-2 gap-2">
+              @for (item of group.items; track item.path) {
+                @let count = badge(item);
+                <li>
+                  <a [routerLink]="'/' + item.path" routerLinkActive="border-brand-500! bg-brand-50!" #rla="routerLinkActive"
+                     class="flex min-h-14 items-center gap-2.5 rounded-xl border border-ink-100 bg-white p-2.5 text-[0.8125rem] font-medium text-ink-800">
+                    <span class="icon-tile size-9" [class.is-brand]="rla.isActive"><dr-icon [name]="item.icon" class="size-[1.125rem]" /></span>
+                    <span class="min-w-0 flex-1 leading-tight">{{ item.label }}</span>
+                    @if (count) { <span class="badge badge-brand num px-2">{{ count }}</span> }
+                  </a>
+                </li>
+              }
+            </ul>
+          }
+          <button type="button" class="btn btn-secondary btn-block mt-4 text-rose-700" (click)="logout()"><dr-icon name="logout" /> Cerrar sesión</button>
+        </nav>
+      }
+    </header>
+    @if (mobileOpen()) { <div class="fixed inset-0 top-16 z-10 bg-navy-950/30 lg:hidden" (click)="mobileOpen.set(false)" aria-hidden="true"></div> }
+
+    <main id="main-content" class="mx-auto w-full max-w-[1440px] px-4 pb-12 pt-6 sm:px-6 lg:px-10 lg:pt-8">
+      <router-outlet />
+    </main>
+  </div>
+</div>
+
+@if (dialogs.receipt(); as r) { <dr-receipt-dialog [payment]="r" (closed)="dialogs.receipt.set(null)" /> }
+@if (dialogs.pdf(); as pdf) { <dr-pdf-dialog [preview]="pdf" (closed)="dialogs.closePdf()" /> }

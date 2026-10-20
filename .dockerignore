@@ -1,0 +1,9 @@
+.git
+.local
+.env
+**/node_modules
+**/dist
+**/.angular
+**/bin
+**/obj
+test-results

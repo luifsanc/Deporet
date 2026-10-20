@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+ <PropertyGroup><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><RestorePackagesWithLockFile>true</RestorePackagesWithLockFile></PropertyGroup>
+ <ItemGroup><PackageReference Include="SkiaSharp" Version="3.119.0" /><PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="3.119.0" /><ProjectReference Include="../DepoRet.Application/DepoRet.Application.csproj" /><PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.2" /><PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.6"><PrivateAssets>all</PrivateAssets></PackageReference><FrameworkReference Include="Microsoft.AspNetCore.App" /></ItemGroup>
+ <ItemGroup><Content Include="Assets/**" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" /></ItemGroup>
+</Project>
